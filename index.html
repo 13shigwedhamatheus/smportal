@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>smportal.space - Academic Study Companion</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f3ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#1e1b4b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Marked.js for Markdown Support -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+    <style>
+        :root {
+            --bg-1: #eef2ff;
+            --bg-2: #f8fafc;
+            --panel: rgba(255,255,255,0.75);
+            --panel-soft: rgba(255,255,255,0.55);
+            --border: rgba(148,163,184,0.2);
+            --text: #0f172a;
+            --muted: #475569;
+            --primary: #4f46e5;
+            --primary-strong: #4338ca;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(circle at top, rgba(99, 102, 241, 0.2), transparent 32%),
+                linear-gradient(180deg, var(--bg-2) 0%, var(--bg-1) 100%);
+            background-attachment: fixed;
+        }
+
+        .dark body {
+            --bg-1: #0b1120;
+            --bg-2: #020817;
+            --panel: rgba(15,23,42,0.74);
+            --panel-soft: rgba(30,41,59,0.5);
+            --border: rgba(148,163,184,0.18);
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+            background:
+                radial-gradient(circle at top, rgba(99,102,241,0.28), transparent 30%),
+                linear-gradient(180deg, #020817 0%, #0f172a 40%, #020617 100%);
+            background-attachment: fixed;
+        }
+
+        .glass-panel {
+            background: var(--panel);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 55px rgba(15, 23, 42, 0.08);
+        }
+
+        .glass-card {
+            background: var(--panel-soft);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+        }
+
+        .soft-surface {
+            background: linear-gradient(135deg, rgba(79,70,229,0.08), rgba(168,85,247,0.08));
+            border: 1px solid rgba(99,102,241,0.12);
+        }
+
+        .module-stat {
+            background: rgba(255,255,255,0.44);
+            border: 1px solid rgba(148,163,184,0.18);
+            backdrop-filter: blur(8px);
+        }
+
+        .dark .module-stat {
+            background: rgba(15,23,42,0.5);
+        }
+
+        .hero-scene {
+            perspective: 1000px;
+        }
+
+        .tilt-card {
+            transform-style: preserve-3d;
+            transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+            will-change: transform;
+        }
+
+        .tilt-card:hover, .tilt-card:focus-visible {
+            box-shadow: 0 20px 44px rgba(79,70,229,0.18);
+        }
+
+        .float-orb {
+            animation: float-orb 6s ease-in-out infinite;
+        }
+
+        .quiz-option {
+            transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+        }
+
+        .quiz-option:hover {
+            transform: translateY(-2px);
+        }
+
+        .bot-fab {
+            transform-style: preserve-3d;
+            animation: bot-hover 3.6s ease-in-out infinite;
+            box-shadow: 0 18px 42px rgba(79,70,229,0.38), inset 0 1px 0 rgba(255,255,255,0.55);
+        }
+
+        .bot-fab:hover {
+            transform: translateY(-5px) rotateY(-12deg) rotateX(8deg) scale(1.04);
+        }
+
+        .bot-eye {
+            box-shadow: 0 0 10px rgba(255,255,255,0.9);
+            animation: bot-blink 5s infinite;
+        }
+
+        @keyframes bot-hover {
+            0%, 100% { transform: translateY(0) rotateY(-8deg); }
+            50% { transform: translateY(-8px) rotateY(8deg); }
+        }
+
+        @keyframes bot-blink {
+            0%, 44%, 48%, 100% { transform: scaleY(1); }
+            46% { transform: scaleY(0.15); }
+        }
+
+        .chat-popover {
+            transform-origin: bottom right;
+            transition: transform 180ms ease, opacity 180ms ease;
+        }
+
+        .chat-popover[hidden] {
+            display: none;
+        }
+
+        #quizQuestions label:has(input:checked) {
+            border-color: #6366f1;
+            background: rgba(99,102,241,0.1);
+        }
+
+        @keyframes float-orb {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                scroll-behavior: auto !important;
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .tilt-card, .bot-fab {
+                transform: none !important;
+            }
+
+            .bot-eye { animation: none !important; }
+        }
+
+        .prose pre {
+            background-color: rgba(15, 23, 42, 0.85) !important;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            overflow-x: auto;
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            border: 1px solid rgba(99,102,241,0.18);
+        }
+        .prose code {
+            font-size: 0.875em;
+            color: #818cf8;
+        }
+        .dark .prose {
+            color: #e2e8f0;
+        }
+        .prose p {
+            margin-bottom: 0.5rem;
+        }
+        .prose ul, .prose ol {
+            list-style-type: disc;
+            padding-left: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        .prose ol {
+            list-style-type: decimal;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(156, 163, 175, 0.3);
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 dark:text-slate-100 transition-colors duration-200 bg-slate-50 flex flex-col">
+
+    <!-- Header Bar -->
+    <header class="sticky top-0 z-40 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/75 backdrop-blur-md px-4 sm:px-6">
+        <div class="max-w-6xl mx-auto h-16 flex items-center justify-between">
+            <a href="#" class="font-bold text-lg tracking-tight text-slate-900 dark:text-white" aria-label="smportal.space home">
+                smportal<span class="text-indigo-500">.space</span>
+            </a>
+
+            <nav class="flex items-center gap-2" aria-label="Main navigation">
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Toggle dark/light mode" aria-label="Toggle dark/light mode">
+                    <i id="themeIcon" class="fa-solid fa-moon" aria-hidden="true"></i>
+                </button>
+                <button onclick="openSettingsModal()" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-2" aria-label="Open settings">
+                    <i class="fa-solid fa-gear" aria-hidden="true"></i>
+                    <span>Settings</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Single Unified Layout -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
+
+        <section id="portal-intro" class="glass-panel rounded-3xl p-6 sm:p-9 lg:p-12 relative overflow-hidden">
+            <div class="absolute -top-24 -right-16 w-72 h-72 rounded-full bg-violet-500/15 blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 left-1/3 w-64 h-64 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none"></div>
+            <div class="relative grid lg:grid-cols-[1.1fr_0.9fr] gap-10 items-center">
+                <div>
+                    <div class="inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-300">
+                        <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+                        Your learning, in one place
+                    </div>
+                    <h1 class="mt-5 max-w-2xl text-3xl sm:text-5xl font-black leading-tight tracking-tight text-slate-900 dark:text-white">
+                        Welcome to <span class="bg-gradient-to-r from-indigo-500 to-violet-500 bg-clip-text text-transparent">smportal.space</span>
+                    </h1>
+                    <p class="mt-4 max-w-xl text-sm sm:text-base leading-relaxed text-slate-600 dark:text-slate-300">
+                        Build stronger study habits, plan your time, and check what you know with instant, personalized quizzes. A smarter study space to help you learn with confidence.
+                    </p>
+                    <div class="mt-7 flex flex-wrap items-center gap-3">
+                        <a href="https://www.smportal.space/student_login.php" class="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 transition-all hover:-translate-y-0.5 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-950">
+                            <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+                            Student Sign In
+                        </a>
+                        <a href="#quizBuilder" class="inline-flex items-center gap-2 rounded-xl border border-slate-300/80 bg-white/50 px-5 py-3 text-sm font-semibold text-slate-700 transition-all hover:-translate-y-0.5 hover:border-indigo-400 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-200">
+                            Create a practice quiz
+                            <i class="fa-solid fa-arrow-down text-xs" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                    <p class="mt-4 text-xs text-slate-500 dark:text-slate-400">Plan your studies. Practice actively. See your progress instantly.</p>
+                </div>
+
+                <div class="hero-scene hidden sm:block" aria-hidden="true">
+                    <div class="hero-dashboard glass-card rounded-3xl p-5 sm:p-6 max-w-md mx-auto">
+                        <div class="flex items-center justify-between border-b border-slate-200/70 dark:border-slate-700/70 pb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/20">
+                                    <i class="fa-solid fa-sparkles" aria-hidden="true"></i>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-slate-900 dark:text-white">Your study rhythm</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Small steps, lasting progress</div>
+                                </div>
+                            </div>
+                            <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-500/10"></span>
+                        </div>
+                        <div class="mt-5 grid grid-cols-2 gap-3">
+                            <div class="rounded-2xl border border-indigo-500/15 bg-indigo-500/5 p-4">
+                                <i class="fa-solid fa-calendar-check text-indigo-400" aria-hidden="true"></i>
+                                <div class="mt-3 text-xs text-slate-500 dark:text-slate-400">STEP 01</div>
+                                <div class="mt-1 font-semibold text-slate-800 dark:text-slate-100">Plan a focus session</div>
+                            </div>
+                            <div class="rounded-2xl border border-violet-500/15 bg-violet-500/5 p-4">
+                                <i class="fa-solid fa-bullseye text-violet-400" aria-hidden="true"></i>
+                                <div class="mt-3 text-xs text-slate-500 dark:text-slate-400">STEP 02</div>
+                                <div class="mt-1 font-semibold text-slate-800 dark:text-slate-100">Practice & improve</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="float-orb absolute -right-2 top-3 h-12 w-12 rounded-2xl bg-gradient-to-br from-fuchsia-400 to-violet-500 shadow-xl shadow-violet-500/30"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module Showcase & Overview Section -->
+        <section id="modules" hidden class="glass-panel rounded-2xl p-5 sm:p-6 shadow-sm relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-indigo-500/10 dark:bg-indigo-500/5 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800/80">
+                <div>
+                    <h2 class="text-xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>Choose your course</span>
+                    </h2>
+                    <p class="text-slate-600 dark:text-slate-400 text-xs sm:text-sm mt-1 max-w-xl">
+                        Select a module to explore course topics and focus your AI tutor session.
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button id="tabBtnCss" onclick="setActiveModule('CSS-101')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all border flex items-center gap-2 bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-500/20">
+                        <i class="fa-solid fa-pen-nib"></i>
+                        <span>CSS-101</span>
+                    </button>
+                    <button id="tabBtnBcs" onclick="setActiveModule('BCS-101')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all border flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-500/50">
+                        <i class="fa-solid fa-laptop-code"></i>
+                        <span>BCS-101</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="module-stat rounded-xl p-3 soft-surface">
+                    <div class="text-[10px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Study help</div>
+                    <div class="mt-1 font-bold text-slate-900 dark:text-white">Essay plans</div>
+                </div>
+                <div class="module-stat rounded-xl p-3 soft-surface">
+                    <div class="text-[10px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Quick answers</div>
+                    <div class="mt-1 font-bold text-slate-900 dark:text-white">Instant guidance</div>
+                </div>
+                <div class="module-stat rounded-xl p-3 soft-surface">
+                    <div class="text-[10px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Digital skills</div>
+                    <div class="mt-1 font-bold text-slate-900 dark:text-white">Office & tech</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+                <div id="cardCss" onclick="setActiveModule('CSS-101')" class="tilt-card glass-card p-4 sm:p-5 rounded-xl border-2 transition-all duration-200 cursor-pointer border-indigo-500 dark:border-indigo-500 shadow-md hover:-translate-y-0.5">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center font-bold text-sm">
+                                <i class="fa-solid fa-book-bookmark"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-500">Code: CSS-101</span>
+                                <h3 class="font-bold text-base text-slate-900 dark:text-white">Communication & Study Skills</h3>
+                            </div>
+                        </div>
+                        <span id="badgeCss" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-500 border border-indigo-500/30">Active Mode</span>
+                    </div>
+
+                    <p class="text-xs text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
+                        Master essential academic writing, referencing, critical reading, listening strategies, examination techniques, and oral presentation skills.
+                    </p>
+
+                    <div class="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
+                        <div class="text-[11px] font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-layer-group text-indigo-500 text-[10px]"></i> Key Topics:
+                        </div>
+                        <div class="flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 text-[10px]">Academic Essays</span>
+                            <span class="px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 text-[10px]">APA 7th Referencing</span>
+                            <span class="px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 text-[10px]">Active Listening</span>
+                            <span class="px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 text-[10px]">Exam Prep</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="cardBcs" onclick="setActiveModule('BCS-101')" class="tilt-card glass-card p-4 sm:p-5 rounded-xl border-2 transition-all duration-200 cursor-pointer border-transparent hover:border-slate-300 dark:hover:border-slate-700 hover:-translate-y-0.5">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-500 flex items-center justify-center font-bold text-sm">
+                                <i class="fa-solid fa-desktop"></i>
+                            </div>
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-violet-500">Code: BCS-101</span>
+                                <h3 class="font-bold text-base text-slate-900 dark:text-white">Basic Computer Skills</h3>
+                            </div>
+                        </div>
+                        <span id="badgeBcs" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-200/50 dark:bg-slate-800/50 text-slate-400">Select</span>
+                    </div>
+
+                    <p class="text-xs text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">
+                        Develop practical digital literacy in computer hardware/software concepts, MS Office tools (Word, Excel, PowerPoint), OS navigation, and internet safety.
+                    </p>
+
+                    <div class="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
+                        <div class="text-[11px] font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-layer-group text-violet-500 text-[10px]"></i> Key Topics:
+                        </div>
+                        <div class="flex flex-wrap gap-1.5">
+                            <span class="px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 text-[10px]">Hardware & OS</span>
+                            <span class="px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 text-[10px]">MS Word & Formatting</span>
+                            <span class="px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 text-[10px]">Excel Formulas</span>
+                            <span class="px-2 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 text-[10px]">Cyber Security</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="quizBuilder" class="glass-panel rounded-3xl p-5 sm:p-8 relative overflow-hidden">
+            <div class="absolute -right-12 -top-14 h-48 w-48 rounded-full bg-violet-500/10 blur-3xl pointer-events-none"></div>
+            <div class="relative grid lg:grid-cols-[0.8fr_1.2fr] gap-8">
+                <div>
+                    <div class="inline-flex items-center gap-2 rounded-full bg-violet-500/10 px-3 py-1 text-xs font-semibold text-violet-600 dark:text-violet-300">
+                        <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+                        AI-powered practice
+                    </div>
+                    <h2 class="mt-3 text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">Practice. Check. Improve.</h2>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Create a short quiz on any topic, submit your answers, and see your score and explanations immediately.</p>
+                    <div class="mt-6 flex gap-3 text-xs text-slate-500 dark:text-slate-400">
+                        <span><i class="fa-solid fa-circle-check text-emerald-500 mr-1" aria-hidden="true"></i>Instant marking</span>
+                        <span><i class="fa-solid fa-lightbulb text-amber-400 mr-1" aria-hidden="true"></i>Answer feedback</span>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-4 sm:p-5">
+                    <form id="quizBuilderForm" class="space-y-4">
+                        <div>
+                            <label for="quizTopic" class="mb-1 block text-sm font-semibold text-slate-800 dark:text-slate-100">What would you like to practice?</label>
+                            <input id="quizTopic" required maxlength="180" placeholder="e.g. active recall, cell biology, APA referencing" class="w-full rounded-xl border border-slate-300 bg-white/80 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 dark:border-slate-700 dark:bg-slate-950/60 dark:text-white">
+                        </div>
+                        <div class="grid sm:grid-cols-2 gap-3">
+                            <div>
+                                <label for="quizCount" class="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Questions</label>
+                                <select id="quizCount" class="w-full rounded-xl border border-slate-300 bg-white/80 px-3 py-2.5 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950/60 dark:text-white">
+                                    <option value="5">5 questions</option>
+                                    <option value="8">8 questions</option>
+                                    <option value="10">10 questions</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="quizLevel" class="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Difficulty</label>
+                                <select id="quizLevel" class="w-full rounded-xl border border-slate-300 bg-white/80 px-3 py-2.5 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-950/60 dark:text-white">
+                                    <option>Beginner</option>
+                                    <option selected>Intermediate</option>
+                                    <option>Advanced</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="generateQuizBtn" type="submit" class="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all hover:-translate-y-0.5 hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60">
+                            <i class="fa-solid fa-bolt mr-2" aria-hidden="true"></i>Create my quiz
+                        </button>
+                    </form>
+                    <p id="quizStatus" class="mt-3 min-h-5 text-xs text-slate-500 dark:text-slate-400" role="status" aria-live="polite"></p>
+                    <p id="quizAiHint" class="mt-2 text-[11px] text-slate-500 dark:text-slate-400">AI quiz generation requires a Gemini key. <button type="button" onclick="openSettingsModal()" class="font-semibold text-indigo-500 hover:underline">Set up AI</button></p>
+                    <div id="quizResult" class="mt-4"></div>
+                    <form id="quizQuestions" class="mt-4 space-y-4" hidden></form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-slate-200 dark:border-slate-800/80 py-4 px-4 text-center text-xs text-slate-500 dark:text-slate-400">
+        <p>© 2026 smportal.space — Learn effectively, one focused session at a time.</p>
+    </footer>
+
+    <div class="fixed bottom-5 right-5 z-40" id="assistantWidget">
+        <section id="chatPopover" class="chat-popover glass-panel absolute bottom-16 right-0 flex h-[min(70vh,560px)] w-[min(92vw,390px)] flex-col overflow-hidden rounded-3xl opacity-0 scale-95 shadow-2xl" role="dialog" aria-modal="false" aria-labelledby="chatTitle" hidden>
+            <div class="flex items-center justify-between border-b border-slate-200/70 bg-white/50 px-4 py-3 dark:border-slate-800/70 dark:bg-slate-950/40">
+                <div class="flex items-center gap-3">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md"><i class="fa-solid fa-robot" aria-hidden="true"></i></span>
+                    <div>
+                        <h2 id="chatTitle" class="text-sm font-bold text-slate-900 dark:text-white">Study assistant</h2>
+                        <span id="aiConnectionStatus" class="text-[10px] text-slate-500 dark:text-slate-400">Live AI needs a Gemini key</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1">
+                    <button onclick="clearChatHistory()" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" title="Clear chat" aria-label="Clear chat"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
+                    <button id="closeChatBtn" onclick="toggleChat()" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Close study assistant"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                </div>
+            </div>
+            <div class="flex gap-2 overflow-x-auto border-b border-slate-200/60 p-2 dark:border-slate-800/60 no-scrollbar" id="quickPromptContainer"></div>
+            <div id="chatContainer" class="flex-1 space-y-3 overflow-y-auto p-3" aria-live="polite"></div>
+            <form id="chatForm" onsubmit="handleFormSubmit(event)" class="flex items-center gap-2 border-t border-slate-200/70 bg-white/50 p-3 dark:border-slate-800/70 dark:bg-slate-950/40">
+                <input type="text" id="userInput" maxlength="2000" placeholder="Ask about studying, focus, memory..." class="min-w-0 flex-1 rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 dark:border-slate-700 dark:bg-slate-900 dark:text-white" autocomplete="off" aria-label="Ask the study assistant">
+                <button type="submit" id="sendBtn" class="flex shrink-0 items-center gap-2 rounded-xl bg-indigo-600 px-3.5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Send message">
+                    <span>Send</span><i class="fa-solid fa-paper-plane text-xs" aria-hidden="true"></i>
+                </button>
+            </form>
+        </section>
+        <button id="botFab" type="button" onclick="toggleChat()" class="bot-fab relative flex h-16 w-16 items-center justify-center rounded-[1.35rem] border border-white/30 bg-gradient-to-br from-indigo-500 via-violet-600 to-fuchsia-600 text-white focus:outline-none focus:ring-4 focus:ring-indigo-400/40" aria-label="Open study assistant" aria-expanded="false">
+            <span class="absolute -right-1 -top-1 h-4 w-4 rounded-full border-2 border-white bg-emerald-400"></span>
+            <span class="relative flex h-10 w-10 flex-col items-center justify-center rounded-2xl border border-white/30 bg-white/20 shadow-inner">
+                <span class="absolute -top-1 left-1 h-2 w-1 rounded-full bg-white/80"></span>
+                <span class="absolute -top-1 right-1 h-2 w-1 rounded-full bg-white/80"></span>
+                <span class="flex gap-1.5"><i class="bot-eye h-2 w-2 rounded-full bg-white"></i><i class="bot-eye h-2 w-2 rounded-full bg-white"></i></span>
+                <span class="mt-1 h-1 w-4 rounded-full bg-white/90"></span>
+            </span>
+        </button>
+    </div>
+
+    <!-- Account & Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+        <div class="glass-panel w-full max-w-md rounded-2xl p-6 shadow-2xl border border-slate-200 dark:border-slate-700 transform scale-95 transition-transform duration-200" id="settingsModalContent">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
+                <h3 class="font-semibold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                    <i class="fa-solid fa-user-gear text-indigo-500"></i> Account & Settings
+                </h3>
+                <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Settings Form Controls -->
+            <div class="py-4 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">Student / User Name</label>
+                    <input type="text" id="settingName" class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50" placeholder="e.g. Alex Smith">
+                </div>
+
+                <div class="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-3">
+                    <div class="text-xs font-semibold text-slate-700 dark:text-slate-200">Protected AI connection</div>
+                    <p class="mt-1 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">The portal uses a server-side Gemini connection so students never need to paste or expose a shared API key. Configure <code class="text-indigo-500">GEMINI_API_KEY</code> in your hosting environment and enable PHP cURL. <a class="text-indigo-500 hover:underline" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Manage Gemini API keys</a>.</p>
+                </div>
+
+                <div class="pt-2 border-t border-slate-200 dark:border-slate-800">
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-2">Data & Storage Controls</label>
+                    <button onclick="clearLocalStorage()" class="w-full py-2 px-3 rounded-xl border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 text-xs font-medium hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Clear Stored History & Preferences
+                    </button>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2">
+                <button onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">Cancel</button>
+                <button onclick="saveSettings()" class="px-4 py-2 rounded-xl text-xs font-medium bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-600/20 transition-colors">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script Logic -->
+    <script>
+        // State Management
+        let currentModule = 'CSS-101'; // 'CSS-101' or 'BCS-101'
+        let chatHistory = [];
+        let userName = 'Student';
+
+        const studyQuickPrompts = [
+            { label: 'Build a study plan', prompt: 'Help me make a realistic study plan for this week using focused study blocks and breaks.' },
+            { label: 'Remember what I learn', prompt: 'Show me how to use active recall and spaced repetition for a topic I am learning.' },
+            { label: 'Beat procrastination', prompt: 'Give me a practical 20-minute plan to start a task I have been avoiding.' }
+        ];
+        const GEMINI_MODEL = 'gemini-3.8-flash';
+        let activeQuiz = [];
+
+        // On Page Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSavedSettings();
+            initTheme();
+            loadChatHistory();
+
+            if (chatHistory.length === 0) {
+                pushInitialWelcomeMessage();
+            }
+            
+            updateModuleUI();
+            renderChat();
+            updateAiConnectionStatus();
+            init3dInteractions();
+            document.getElementById('quizBuilderForm').addEventListener('submit', handleQuizGenerate);
+            document.getElementById('quizQuestions').addEventListener('submit', gradeQuiz);
+        });
+
+        function pushInitialWelcomeMessage() {
+            const welcomeMsg = {
+                sender: 'ai',
+                text: `Welcome **${userName}**! 👋\n\nI can help you study more effectively, plan focused study sessions, understand difficult topics, and practice with instant-marking quizzes.\n\nAsk me a question or create a quiz on any topic to get started.`,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            chatHistory.push(welcomeMsg);
+            saveChatHistory();
+        }
+
+        // Active Module Selector
+        function setActiveModule(moduleCode) {
+            document.getElementById('modules').hidden = false;
+            if (currentModule === moduleCode) {
+                return;
+            }
+
+            currentModule = moduleCode;
+            updateModuleUI();
+
+            const lastMessage = chatHistory[chatHistory.length - 1];
+            const switchText = `💡 **Active Focus Switched to ${moduleCode}**. You can now ask any specific questions regarding **${moduleCode === 'CSS-101' ? 'Communication & Study Skills' : 'Basic Computer Skills'}**.`;
+
+            if (!lastMessage || lastMessage.sender !== 'ai' || lastMessage.text !== switchText) {
+                const switchMsg = {
+                    sender: 'ai',
+                    text: switchText,
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                };
+                chatHistory.push(switchMsg);
+                saveChatHistory();
+                renderChat();
+            }
+        }
+
+        function updateModuleUI() {
+            const isCss = currentModule === 'CSS-101';
+
+            // Update Tab Buttons
+            const tabCss = document.getElementById('tabBtnCss');
+            const tabBcs = document.getElementById('tabBtnBcs');
+
+            if (isCss) {
+                tabCss.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all border flex items-center gap-2 bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-500/20";
+                tabBcs.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all border flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-500/50";
+            } else {
+                tabBcs.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all border flex items-center gap-2 bg-violet-600 text-white border-violet-500 shadow-md shadow-violet-500/20";
+                tabCss.className = "px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all border flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-500/50";
+            }
+
+            // Update Cards Styling
+            const cardCss = document.getElementById('cardCss');
+            const cardBcs = document.getElementById('cardBcs');
+            const badgeCss = document.getElementById('badgeCss');
+            const badgeBcs = document.getElementById('badgeBcs');
+
+            if (isCss) {
+                cardCss.className = "tilt-card glass-card p-4 sm:p-5 rounded-xl border-2 transition-all duration-200 cursor-pointer border-indigo-500 dark:border-indigo-500 shadow-md hover:-translate-y-0.5";
+                cardBcs.className = "tilt-card glass-card p-4 sm:p-5 rounded-xl border-2 transition-all duration-200 cursor-pointer border-transparent hover:border-slate-300 dark:hover:border-slate-700 opacity-80 hover:opacity-100 hover:-translate-y-0.5";
+                badgeCss.className = "px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-500 border border-indigo-500/30";
+                badgeCss.textContent = "Active Mode";
+                badgeBcs.className = "px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-200/50 dark:bg-slate-800/50 text-slate-400";
+                badgeBcs.textContent = "Select";
+            } else {
+                cardBcs.className = "tilt-card glass-card p-4 sm:p-5 rounded-xl border-2 transition-all duration-200 cursor-pointer border-violet-500 dark:border-violet-500 shadow-md hover:-translate-y-0.5";
+                cardCss.className = "tilt-card glass-card p-4 sm:p-5 rounded-xl border-2 transition-all duration-200 cursor-pointer border-transparent hover:border-slate-300 dark:hover:border-slate-700 opacity-80 hover:opacity-100 hover:-translate-y-0.5";
+                badgeBcs.className = "px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-500/10 text-violet-500 border border-violet-500/30";
+                badgeBcs.textContent = "Active Mode";
+                badgeCss.className = "px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-200/50 dark:bg-slate-800/50 text-slate-400";
+                badgeCss.textContent = "Select";
+            }
+
+            renderQuickPrompts();
+        }
+
+        function renderQuickPrompts() {
+            const container = document.getElementById('quickPromptContainer');
+            container.replaceChildren();
+            studyQuickPrompts.forEach(item => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = item.label;
+                button.className = 'shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-600 transition-colors hover:border-indigo-400 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:text-indigo-300';
+                button.addEventListener('click', () => sendQuickPrompt(item.prompt));
+                container.appendChild(button);
+            });
+        }
+
+        function revealRequestedModules(text) {
+            const normalized = text.toLowerCase();
+            if (/\b(css[\s-]?101|communication\s+(?:and|&)\s+study\s+skills)\b/.test(normalized)) {
+                setActiveModule('CSS-101');
+            } else if (/\b(bcs[\s-]?101|basic computer skills)\b/.test(normalized)) {
+                setActiveModule('BCS-101');
+            }
+        }
+
+        // Theme Toggle Functionality
+        function initTheme() {
+            const savedTheme = localStorage.getItem('smportal_theme') || 'dark';
+            if (savedTheme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').className = 'fa-solid fa-sun text-amber-400';
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('themeIcon').className = 'fa-solid fa-moon text-slate-600';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('smportal_theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun text-amber-400' : 'fa-solid fa-moon text-slate-600';
+        }
+
+        // Local Storage & Settings
+        function loadSavedSettings() {
+            userName = localStorage.getItem('smportal_user') || 'Student';
+            document.getElementById('settingName').value = userName;
+            localStorage.removeItem('smportal_apikey');
+        }
+
+        function updateAiConnectionStatus() {
+            const status = document.getElementById('aiConnectionStatus');
+            if (!status) return;
+
+            status.textContent = 'Gemini via portal server';
+            status.className = 'text-[10px] text-slate-500 dark:text-slate-400';
+            const quizHint = document.getElementById('quizAiHint');
+            if (quizHint) {
+                quizHint.innerHTML = 'AI quiz generation uses the portal’s server-side Gemini service. <button type="button" onclick="openSettingsModal()" class="font-semibold text-indigo-500 hover:underline">Service setup</button>';
+            }
+        }
+
+        function init3dInteractions() {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+            document.querySelectorAll('.tilt-card, .hero-dashboard').forEach(element => {
+                element.addEventListener('pointermove', event => {
+                    if (event.pointerType !== 'mouse') return;
+                    const bounds = element.getBoundingClientRect();
+                    const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+                    const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+                    const tiltX = Math.max(-5, Math.min(5, -y * 10));
+                    const tiltY = Math.max(-6, Math.min(6, x * 12));
+                    const baseTransform = element.classList.contains('hero-dashboard') ? 'rotateY(-10deg) rotateX(4deg) ' : '';
+                    element.style.transform = `${baseTransform}rotateX(${tiltX}deg) rotateY(${tiltY}deg) translateZ(4px)`;
+                });
+
+                element.addEventListener('pointerleave', () => {
+                    element.style.removeProperty('transform');
+                });
+            });
+        }
+
+        function openSettingsModal() {
+            const modal = document.getElementById('settingsModal');
+            const content = document.getElementById('settingsModalContent');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeSettingsModal() {
+            const modal = document.getElementById('settingsModal');
+            const content = document.getElementById('settingsModalContent');
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function saveSettings() {
+            userName = document.getElementById('settingName').value.trim() || 'Student';
+            
+            localStorage.setItem('smportal_user', userName);
+            localStorage.removeItem('smportal_apikey');
+
+            updateAiConnectionStatus();
+            renderChat();
+            closeSettingsModal();
+        }
+
+        function clearLocalStorage() {
+            if (confirm('Are you sure you want to clear your local chat history and saved preferences?')) {
+                localStorage.removeItem('smportal_chat');
+                localStorage.removeItem('smportal_user');
+                localStorage.removeItem('smportal_apikey');
+                chatHistory = [];
+                userName = 'Student';
+                location.reload();
+            }
+        }
+
+        // Chat Management
+        function saveChatHistory() {
+            localStorage.setItem('smportal_chat', JSON.stringify(chatHistory));
+        }
+
+        function loadChatHistory() {
+            const saved = localStorage.getItem('smportal_chat');
+            if (saved) {
+                try {
+                    chatHistory = JSON.parse(saved);
+                } catch (e) {
+                    chatHistory = [];
+                }
+            }
+        }
+
+        function clearChatHistory() {
+            chatHistory = [];
+            pushInitialWelcomeMessage();
+            renderChat();
+        }
+
+        function renderChat() {
+            const container = document.getElementById('chatContainer');
+            container.innerHTML = '';
+
+            chatHistory.forEach(msg => {
+                const msgEl = document.createElement('div');
+                msgEl.className = `flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} mb-3`;
+
+                const isUser = msg.sender === 'user';
+                const messageText = String(msg.text || '');
+                const renderedMarkdown = typeof marked !== 'undefined' ? marked.parse(messageText) : escapeHtml(messageText);
+                const parsedContent = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(renderedMarkdown) : escapeHtml(messageText);
+                const safeName = escapeHtml(isUser ? userName : 'AI Academic Tutor');
+                const safeTimestamp = escapeHtml(msg.timestamp || '');
+
+                msgEl.innerHTML = `
+                    <div class="flex items-start space-x-2.5 max-w-[88%] sm:max-w-[82%] ${isUser ? 'flex-row-reverse space-x-reverse' : ''}">
+                        <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isUser ? 'bg-indigo-600 text-white' : 'bg-violet-600/20 text-violet-400 border border-violet-500/30'} text-xs font-bold shadow-sm">
+                            ${isUser ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-robot"></i>'}
+                        </div>
+                        <div class="rounded-2xl p-4 text-xs sm:text-sm ${
+                            isUser 
+                            ? 'bg-indigo-600 text-white rounded-tr-none shadow-md shadow-indigo-600/10' 
+                            : 'glass-card text-slate-800 dark:text-slate-100 rounded-tl-none border border-slate-200/80 dark:border-slate-800'
+                        }">
+                            <div class="flex items-center justify-between gap-4 mb-1 border-b border-slate-200/20 dark:border-slate-700/30 pb-1 text-[10px] opacity-75">
+                                <span class="font-semibold">${safeName}</span>
+                                <span>${safeTimestamp}</span>
+                            </div>
+                            <div class="prose dark:prose-invert max-w-none text-xs sm:text-sm leading-relaxed">
+                                ${parsedContent}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(msgEl);
+            });
+
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function toggleChat(forceOpen) {
+            const panel = document.getElementById('chatPopover');
+            const launcher = document.getElementById('botFab');
+            const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : panel.hidden;
+
+            panel.hidden = !shouldOpen;
+            launcher.setAttribute('aria-expanded', String(shouldOpen));
+            launcher.setAttribute('aria-label', shouldOpen ? 'Close study assistant' : 'Open study assistant');
+            if (shouldOpen) {
+                requestAnimationFrame(() => {
+                    panel.classList.remove('opacity-0', 'scale-95');
+                    panel.classList.add('opacity-100', 'scale-100');
+                    document.getElementById('userInput').focus();
+                });
+            } else {
+                panel.classList.add('opacity-0', 'scale-95');
+                panel.classList.remove('opacity-100', 'scale-100');
+                launcher.focus();
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, character => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[character]);
+        }
+
+        function sendQuickPrompt(promptText) {
+            toggleChat(true);
+            document.getElementById('userInput').value = promptText;
+            handleFormSubmit(new Event('submit'));
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const inputEl = document.getElementById('userInput');
+            const prompt = inputEl.value.trim();
+
+            if (!prompt) return;
+            revealRequestedModules(prompt);
+
+            // User Message
+            const userMsg = {
+                sender: 'user',
+                text: prompt,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            };
+            chatHistory.push(userMsg);
+            saveChatHistory();
+            renderChat();
+
+            inputEl.value = '';
+            setLoadingState(true);
+
+            // Gemini API Call
+            try {
+                const responseText = await fetchGeminiResponse(prompt);
+                const aiMsg = {
+                    sender: 'ai',
+                    text: responseText,
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                };
+                chatHistory.push(aiMsg);
+                saveChatHistory();
+            } catch (err) {
+                    const details = err instanceof Error ? err.message : 'Unknown API error';
+                const errorMsg = {
+                    sender: 'ai',
+                        text: `⚠️ **The study assistant could not respond.** ${details}\n\nPlease try again. If the problem continues, contact the portal administrator.`,
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                };
+                chatHistory.push(errorMsg);
+            } finally {
+                setLoadingState(false);
+                renderChat();
+            }
+        }
+
+        function setLoadingState(isLoading) {
+            const sendBtn = document.getElementById('sendBtn');
+            const inputEl = document.getElementById('userInput');
+
+            if (isLoading) {
+                sendBtn.disabled = true;
+                inputEl.disabled = true;
+                sendBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-xs"></i> <span>Thinking...</span>`;
+                
+                const container = document.getElementById('chatContainer');
+                const loadingDiv = document.createElement('div');
+                loadingDiv.id = 'tempLoadingIndicator';
+                loadingDiv.className = 'flex justify-start mb-3';
+                loadingDiv.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-600/20 text-violet-400 border border-violet-500/30 text-xs">
+                            <i class="fa-solid fa-robot animate-bounce"></i>
+                        </div>
+                        <div class="glass-card px-4 py-3 rounded-2xl rounded-tl-none text-xs text-slate-400 flex items-center space-x-2">
+                            <span class="inline-block w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span>
+                            <span>Thinking through your question...</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(loadingDiv);
+                container.scrollTop = container.scrollHeight;
+            } else {
+                sendBtn.disabled = false;
+                inputEl.disabled = false;
+                sendBtn.innerHTML = `<span>Send</span> <i class="fa-solid fa-paper-plane text-xs"></i>`;
+                const tempIndicator = document.getElementById('tempLoadingIndicator');
+                if (tempIndicator) tempIndicator.remove();
+                inputEl.focus();
+            }
+        }
+
+        async function handleQuizGenerate(event) {
+            event.preventDefault();
+            const topic = document.getElementById('quizTopic').value.trim();
+            const questionCount = Number(document.getElementById('quizCount').value);
+            const difficulty = document.getElementById('quizLevel').value;
+            const status = document.getElementById('quizStatus');
+            const button = document.getElementById('generateQuizBtn');
+            const questionsForm = document.getElementById('quizQuestions');
+            const result = document.getElementById('quizResult');
+
+            if (!topic) return;
+            button.disabled = true;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2" aria-hidden="true"></i>Building your quiz...';
+            status.textContent = 'Writing questions and checking the answer key...';
+            result.replaceChildren();
+            questionsForm.hidden = true;
+            questionsForm.replaceChildren();
+
+            try {
+                const contents = [{
+                    role: 'user',
+                    parts: [{
+                        text: `Create exactly ${questionCount} original, accurate, single-answer multiple-choice questions about "${topic}" at ${difficulty} difficulty. Make distractors plausible, avoid trick wording, and ensure each explanation teaches the concept. Return only JSON matching this shape: {"questions":[{"question":"...","choices":["...","...","...","..."],"answer":0,"explanation":"..."}]}. The answer is a zero-based index into choices.`
+                    }]
+                }];
+                const responseText = await callGemini(contents, 'You are an accurate academic assessment author. Produce fair, unambiguous practice questions. Follow the requested JSON format exactly.', true);
+                activeQuiz = parseQuizResponse(responseText, questionCount);
+                renderQuiz(activeQuiz);
+                status.textContent = `Your ${activeQuiz.length}-question ${difficulty.toLowerCase()} quiz is ready. Select one answer per question, then submit to see your mark.`;
+                questionsForm.hidden = false;
+            } catch (error) {
+                status.textContent = error instanceof Error ? error.message : 'Could not create the quiz.';
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-bolt mr-2" aria-hidden="true"></i>Create my quiz';
+            }
+        }
+
+        function parseQuizResponse(text, requestedCount) {
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (error) {
+                throw new Error('The AI returned an invalid quiz format. Please try generating the quiz again.');
+            }
+
+            if (!Array.isArray(data.questions) || data.questions.length !== requestedCount) {
+                throw new Error('The AI returned an incomplete quiz. Please try again.');
+            }
+
+            return data.questions.map((question, index) => {
+                if (typeof question.question !== 'string' ||
+                    !Array.isArray(question.choices) ||
+                    question.choices.length !== 4 ||
+                    question.choices.some(choice => typeof choice !== 'string' || !choice.trim()) ||
+                    !Number.isInteger(question.answer) ||
+                    question.answer < 0 ||
+                    question.answer > 3 ||
+                    typeof question.explanation !== 'string' ||
+                    !question.explanation.trim()) {
+                    throw new Error(`Question ${index + 1} was malformed. Please generate a new quiz.`);
+                }
+                return {
+                    question: question.question.trim(),
+                    choices: question.choices.map(choice => choice.trim()),
+                    answer: question.answer,
+                    explanation: question.explanation.trim()
+                };
+            });
+        }
+
+        function renderQuiz(questions) {
+            const form = document.getElementById('quizQuestions');
+            form.replaceChildren();
+
+            questions.forEach((question, questionIndex) => {
+                const questionCard = document.createElement('fieldset');
+                questionCard.className = 'glass-card rounded-2xl p-4 sm:p-5';
+                questionCard.innerHTML = `<legend class="font-semibold text-sm leading-relaxed text-slate-900 dark:text-white"><span class="mr-2 text-indigo-500">${questionIndex + 1}.</span>${escapeHtml(question.question)}</legend>`;
+                const options = document.createElement('div');
+                options.className = 'mt-3 grid gap-2';
+
+                question.choices.forEach((choice, choiceIndex) => {
+                    const label = document.createElement('label');
+                    label.className = 'quiz-option flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-white/50 p-3 text-sm text-slate-700 dark:border-slate-700 dark:bg-slate-900/40 dark:text-slate-200';
+                    label.innerHTML = `<input class="mt-1 accent-indigo-600" type="radio" name="question-${questionIndex}" value="${choiceIndex}" aria-label="Question ${questionIndex + 1}, option ${choiceIndex + 1}"><span>${escapeHtml(choice)}</span>`;
+                    options.appendChild(label);
+                });
+
+                questionCard.appendChild(options);
+                form.appendChild(questionCard);
+            });
+
+            const submit = document.createElement('button');
+            submit.type = 'submit';
+            submit.className = 'w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-slate-950';
+            submit.innerHTML = '<i class="fa-solid fa-check mr-2" aria-hidden="true"></i>Submit answers & see my mark';
+            form.appendChild(submit);
+        }
+
+        function gradeQuiz(event) {
+            event.preventDefault();
+            const form = document.getElementById('quizQuestions');
+            const selections = new FormData(form);
+            let correct = 0;
+
+            activeQuiz.forEach((question, index) => {
+                const selected = selections.get(`question-${index}`);
+                if (selected !== null && Number(selected) === question.answer) correct += 1;
+            });
+
+            const percentage = Math.round((correct / activeQuiz.length) * 100);
+            const result = document.getElementById('quizResult');
+            const resultTone = percentage >= 80
+                ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                : percentage >= 50
+                    ? 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                    : 'border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300';
+            result.innerHTML = `<div class="rounded-2xl border p-4 ${resultTone}"><div class="text-xl font-black">${correct} / ${activeQuiz.length} correct <span class="text-sm font-semibold">(${percentage}%)</span></div><p class="mt-1 text-sm">${percentage >= 80 ? 'Excellent work. Keep building on what you know!' : percentage >= 50 ? 'Good progress. Review the feedback below and try again.' : 'Keep practicing. Review the explanations and give it another go.'}</p></div>`;
+
+            activeQuiz.forEach((question, questionIndex) => {
+                const selected = selections.get(`question-${questionIndex}`);
+                const inputs = form.querySelectorAll(`input[name="question-${questionIndex}"]`);
+                inputs.forEach((input, choiceIndex) => {
+                    input.disabled = true;
+                    const label = input.closest('label');
+                    if (choiceIndex === question.answer) {
+                        label.classList.add('border-emerald-500', 'bg-emerald-500/10');
+                    } else if (String(choiceIndex) === selected) {
+                        label.classList.add('border-rose-500', 'bg-rose-500/10');
+                    }
+                });
+
+                const feedback = document.createElement('p');
+                feedback.className = 'mt-3 rounded-xl bg-slate-100/70 p-3 text-xs leading-relaxed text-slate-600 dark:bg-slate-950/40 dark:text-slate-300';
+                feedback.innerHTML = `<strong>${selected === null ? 'Not answered.' : Number(selected) === question.answer ? 'Correct.' : 'Not quite.'}</strong> ${escapeHtml(question.explanation)} <span class="block mt-1 text-emerald-700 dark:text-emerald-300">Correct answer: ${escapeHtml(question.choices[question.answer])}</span>`;
+                form.querySelectorAll('fieldset')[questionIndex].appendChild(feedback);
+            });
+
+            form.querySelector('button[type="submit"]').remove();
+            result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Gemini API Query
+        async function fetchGeminiResponse(userPrompt) {
+            const contents = [];
+            chatHistory.slice(0, -1).slice(-14).forEach(message => {
+                if (message.sender !== 'user' && message.sender !== 'ai') return;
+                if (message.sender === 'ai' && (!message.text || message.text.startsWith('Welcome **') || message.text.startsWith('💡 **') || message.text.startsWith('⚠️'))) return;
+
+                const role = message.sender === 'user' ? 'user' : 'model';
+                const text = String(message.text || '').slice(0, 1500);
+                if (!text.trim()) return;
+
+                const previousTurn = contents[contents.length - 1];
+                if (previousTurn && previousTurn.role === role) {
+                    previousTurn.parts.push({ text });
+                } else if (role === 'user' || contents.length > 0) {
+                    contents.push({ role, parts: [{ text }] });
+                }
+            });
+            const previousTurn = contents[contents.length - 1];
+            if (previousTurn && previousTurn.role === 'user') {
+                previousTurn.parts.push({ text: userPrompt });
+            } else {
+                contents.push({ role: 'user', parts: [{ text: userPrompt }] });
+            }
+
+            return callGemini(contents, `You are the smportal.space study assistant. Help students learn effectively with clear, accurate, supportive guidance on academic success, planning, focus, memory, revision, and general learning questions. If a student asks specifically about CSS-101 (Communication & Study Skills) or BCS-101 (Basic Computer Skills), explain the relevant module and reveal its information cards in the interface. Do not force those two modules into unrelated answers. Use concise Markdown, examples, and actionable steps.`, false);
+        }
+
+        async function callGemini(contents, systemInstruction, expectJson) {
+            const input = contents.map(turn => {
+                const text = turn.parts.map(part => part.text || '').join('\n');
+                return `${turn.role === 'user' ? 'Student' : 'Study assistant'}: ${text}`;
+            }).join('\n\n');
+            const response = await fetch('./gemini-proxy.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: GEMINI_MODEL,
+                    input: expectJson ? `${input}\n\nReturn only valid JSON. Do not include Markdown fences or commentary.` : input,
+                    system_instruction: systemInstruction
+                })
+            });
+
+            let data;
+            try {
+                data = await response.json();
+            } catch (error) {
+                throw new Error(`Gemini returned an unreadable response (HTTP ${response.status}).`);
+            }
+
+            if (!response.ok) {
+                throw new Error(data?.error?.message || `Gemini request failed with HTTP ${response.status}.`);
+            }
+
+            const candidateText = typeof data?.output_text === 'string' ? data.output_text.trim() : '';
+            if (!candidateText) {
+                throw new Error('Gemini returned an empty response. Please try again.');
+            }
+
+            return candidateText;
+        }
+    </script>
+</body>
+</html>
